@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.Optional;
 
 @RestController
@@ -19,9 +20,12 @@ public class EncuestaController {
     private EncuestaRepository encuestaRepository;
 
     @GetMapping("/encuestas")
-    public ResponseEntity<Iterable<Encuesta>> listarTodasLasEncuestas() {
-
-        return new ResponseEntity<>(encuestaRepository.findAll(), HttpStatus.OK);
+    public ResponseEntity<?> listarTodasLasEncuestas() {
+        Iterable<Encuesta> encuestas = encuestaRepository.findAll();
+        if (((Collection<?>) encuestas).isEmpty()) {
+            return new ResponseEntity<>("No hay encuestas disponibles", HttpStatus.NO_CONTENT); // Devolver 204 No Content
+        }
+        return new ResponseEntity<>(encuestas, HttpStatus.OK);
     }
 
     @PostMapping("/encuestas")
@@ -50,10 +54,10 @@ public class EncuestaController {
     }
 
     @PutMapping("/encuestas/{encuestaId}")
-    public ResponseEntity<?> actualizarEncuesta(@RequestBody Encuesta encuesta, @PathVariable Long encuentaId){
-        encuesta.setId(encuentaId);
-        Encuesta e = encuestaRepository.save(encuesta);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<?> actualizarEncuesta(@RequestBody Encuesta encuesta, @PathVariable Long encuestaId){
+        encuesta.setId(encuestaId);
+        encuestaRepository.save(encuesta);
+        return new ResponseEntity<>("Encuesta actualizada",HttpStatus.OK);
     }
 
     @DeleteMapping("/encuestas/{encuestaId}")
