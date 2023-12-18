@@ -33,6 +33,4 @@ public class VotoController {
         return votoRepository.findByEncuesta(encuestaId);
     }
 
-
-
 }

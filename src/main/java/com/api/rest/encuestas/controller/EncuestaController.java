@@ -1,5 +1,6 @@
 package com.api.rest.encuestas.controller;
 
+import com.api.rest.encuestas.exception.ResourceNotFoundException;
 import com.api.rest.encuestas.model.Encuesta;
 import com.api.rest.encuestas.reposotories.EncuestaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,32 +40,40 @@ public class EncuestaController {
                 .buildAndExpand(encuesta.getId()).toUri();
         httpHeaders.setLocation(newEncuestaUri);
 
-        return new ResponseEntity<>(null, httpHeaders,HttpStatus.CREATED);
+        return new ResponseEntity<>(null, httpHeaders, HttpStatus.CREATED);
     }
 
     @GetMapping("/encuestas/{encuestaId}")
-    public ResponseEntity<?> obtenerEncuesta(@PathVariable Long encuestaId){
+    public ResponseEntity<?> obtenerEncuesta(@PathVariable Long encuestaId) {
+        verifyEncuesta(encuestaId);
         Optional<Encuesta> encuesta = encuestaRepository.findById(encuestaId);
 
-        if (encuesta.isPresent()){
+        if (encuesta.isPresent()) {
             return new ResponseEntity(encuesta, HttpStatus.OK);
-        }else{
+        } else {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
     }
 
     @PutMapping("/encuestas/{encuestaId}")
-    public ResponseEntity<?> actualizarEncuesta(@RequestBody Encuesta encuesta, @PathVariable Long encuestaId){
+    public ResponseEntity<?> actualizarEncuesta(@RequestBody Encuesta encuesta, @PathVariable Long encuestaId) {
         encuesta.setId(encuestaId);
         encuestaRepository.save(encuesta);
-        return new ResponseEntity<>("Encuesta actualizada",HttpStatus.OK);
+        return new ResponseEntity<>("Encuesta actualizada", HttpStatus.OK);
     }
 
     @DeleteMapping("/encuestas/{encuestaId}")
-    public ResponseEntity<?> eliminarEncuesta(@PathVariable Long encuestaId){
+    public ResponseEntity<?> eliminarEncuesta(@PathVariable Long encuestaId) {
+        verifyEncuesta(encuestaId);
         encuestaRepository.deleteById(encuestaId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    protected void verifyEncuesta(Long encuestaId) {
+        Optional<Encuesta> encuesta = encuestaRepository.findById(encuestaId);
+        Encuesta encuestaPresente = encuesta.orElseThrow(
+                () -> new ResourceNotFoundException("Encuesta con el Id "
+                        + encuestaId + " no encontrada"));
+    }
 
 }
